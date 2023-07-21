@@ -70,40 +70,6 @@ check_wget() {
 	log_info "Check wget -> Ok"
 }
 
-check_systemd() {
-	if ! [ -x "$(command -v systemctl)" ]; then
-		log_fatal "Systemd not found, please install";
-	fi
-	log_info "Check Systemd -> Ok"
-}
-
-check_shared_dependencies() {
-	if ! [ -x "$(command -v ldconfig)" ]; then
-		log_fatal "Command 'ldconfig' not found"
-	fi
-
-	libs=(
-		"libssl.so.1.1"
-		"libcrypto.so.1.1"
-		"libgcc_s.so.1"
-		"librt.so.1"
-		"libpthread.so.0"
-		"libdl.so.2"
-		"libc.so.6"
-	)
-
-	set +e
-	for lib in "${libs[@]}"; do
-		result=$(ldconfig -p | grep "$lib")
-		if [ -z "$result" ]; then
-			log_fatal "Dependency '$lib' not found."
-		fi
-	done
-	set -e
-
-	log_info "Check shared dependencies -> OK"
-}
-
 create_initial_structure() {
 	cd "$TMP_DIR"
 	log_info "Create Initial Structure -> OK"
@@ -168,20 +134,6 @@ move_test_server_files() {
 	fi
 }
 
-start_server() {
-	log_info "Starting service"
-	if [ "$OS_FAMILY" == "centoslike" ]; then
-		systemctl daemon-reload
-		systemctl restart mc-test
-		systemctl enable mc-test
-	else
-		systemctl daemon-reload
-		systemctl restart mc-test.service
-		systemctl enable mc-test.service
-	fi
-	log_info "Start service -> OK"
-}
-
 move_logs() {
 	log_info "Moving logs -> OK"
 	mv logs "/etc/$WORKDIR/logs"
@@ -192,14 +144,11 @@ do_install() {
 	check_root
 	check_arch
 	check_wget
-	# check_systemd
-	# check_shared_dependencies
 	create_initial_structure
 	download_certificates_files
 	download_test_server
 	delete_old_files
 	move_test_server_files
-	# start_server
 	log_info "Successfully installed!"
 	move_logs
 	delete_tmp_structure
