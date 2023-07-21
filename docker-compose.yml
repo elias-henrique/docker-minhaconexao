@@ -1,0 +1,11 @@
+version: '3.7'
+services:
+  spmc:
+    container_name: spmc
+    tty: true
+    build:
+      context: .
+      dockerfile: spmc/Dockerfile
+    ports:
+      -  9090:9090
+    restart: unless-stopped
